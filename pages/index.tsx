@@ -1,22 +1,32 @@
-import type { GetStaticProps, NextPage } from 'next';
-import Link from 'next/link';
-import { ReactElement, JSXElementConstructor, ReactFragment, ReactPortal } from 'react';
+import type { GetServerSideProps, GetStaticProps, NextPage } from 'next';
+import { useEffect, useState } from 'react';
+import PositionData from './positionContainer';
 
-const Home: NextPage = ({todos}: any) => {
+const Home: NextPage = ({weather, position}: any) => {
+  const [data, setData] = useState<GeolocationPosition|GeolocationPositionError>();
+  useEffect(()=>{
+    !data&&navigator.geolocation.getCurrentPosition((successCallback)=>{setData(successCallback)}, errorCallback=>{setData(errorCallback);
+    });
+  },[]);
+  console.log(data);
   return (
     <div>
-      {todos.map((el: { title: string, id:number })=>(<p key={el.id}><Link href={`/contact/${el.id}`} key={el.id}>{el.title}</Link></p>))}
+      Weather
+      <PositionData/>
     </div>
   );
 };
 
-export const getStaticProps: GetStaticProps = async () =>{
-  const response = await fetch('https://jsonplaceholder.typicode.com/todos');
-  const todos = await response.json();
-
+export const getServerSideProps: GetServerSideProps = async () =>{
+  const apiKey = '947a832a049fb46484d52fb43731dd52';
+  const city = 'Novorossiysk';
+  let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&lang=ru&units=metric&appid=${apiKey}`;
+  const response = await fetch(url);
+  const weather = await response.json();
+  
   return {
     props:{
-      todos,
+      weather,
     }
   };
 }
