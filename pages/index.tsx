@@ -1,34 +1,21 @@
-import type { GetServerSideProps, GetStaticProps, NextPage } from 'next';
+import type { GetServerSideProps, NextPage } from 'next';
 import { useEffect, useState } from 'react';
 import PositionData from './positionContainer';
 
-const Home: NextPage = ({weather, position}: any) => {
-  const [data, setData] = useState<GeolocationPosition|GeolocationPositionError>();
+const Home: NextPage = ({weather}: any) => {
+  const [data, setData] = useState<null|GeolocationPositionError|{lat: number, long: number}>();
   useEffect(()=>{
-    !data&&navigator.geolocation.getCurrentPosition((successCallback)=>{setData(successCallback)}, errorCallback=>{setData(errorCallback);
+    !data&&navigator.geolocation.getCurrentPosition((successCallback)=>{setData({lat: successCallback.coords.latitude, long: successCallback.coords.longitude})}, errorCallback=>{setData(null);
     });
   },[]);
-  console.log(data);
+
+  
   return (
     <div>
       Weather
-      <PositionData/>
+      {data&&<PositionData data={data as {lat: number, long: number}} />}
     </div>
   );
 };
-
-export const getServerSideProps: GetServerSideProps = async () =>{
-  const apiKey = '947a832a049fb46484d52fb43731dd52';
-  const city = 'Novorossiysk';
-  let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&lang=ru&units=metric&appid=${apiKey}`;
-  const response = await fetch(url);
-  const weather = await response.json();
-  
-  return {
-    props:{
-      weather,
-    }
-  };
-}
 
 export default Home;
